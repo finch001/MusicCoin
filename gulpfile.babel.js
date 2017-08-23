@@ -3,13 +3,17 @@ import path from 'path';
 
 import gulp from 'gulp';
 
-// Load all gulp plugins automatically
+// Load all gulp plugins automatically from package.json gulp
 // and attach them to the `plugins` object
 import plugins from 'gulp-load-plugins';
 
 // Temporary solution until gulp 4
 // https://github.com/gulpjs/gulp/issues/355
 import runSequence from 'run-sequence';
+
+import uglify from 'gulp-uglify';
+
+import pump from 'pump';
 
 import archiver from 'archiver';
 import glob from 'glob';
@@ -73,6 +77,14 @@ gulp.task('clean', (done) => {
     ]).then(() => {
         done();
     });
+});
+
+gulp.task('compress', (cb) => {
+    pump([
+        gulp.src([`${dirs.src}/js/main.js`, `${dirs.src}/js/plugins.js`, `${dirs.src}/js/wow.js`]),
+        uglify(),
+        gulp.dest(`${dirs.dist}/js`)
+    ], cb);
 });
 
 gulp.task('copy', [
@@ -190,7 +202,7 @@ gulp.task('archive', (done) => {
 gulp.task('build', (done) => {
     runSequence(
         ['clean', 'lint:js'],
-        'copy', 'modernizr',
+        'copy', 'compress', 'modernizr',
         done)
 });
 
